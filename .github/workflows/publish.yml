@@ -1,0 +1,40 @@
+name: Publish Package to Github
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version increment type'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Update to next ${{ github.event.inputs.version_type }} Version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24.x"
+          registry-url: "https://npm.pkg.github.com"
+      - name: Install Bun
+        run: npm install -g bun
+      - run: bun install
+      
+      # Dynamic version increment based on input or default to patch
+      - name: Update version
+        run: npm version ${{ github.event.inputs.version_type || 'patch' }} --no-git-tag-version
+
+      - name: Build the playground
+        run:  bun run build
+      - name: Publish Package
+        run: bun publish --access public

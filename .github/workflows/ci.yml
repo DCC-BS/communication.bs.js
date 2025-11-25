@@ -1,0 +1,28 @@
+name: Build & Test
+
+on:
+  push:
+    branches:
+        - main
+  pull_request:
+    branches:
+        - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24.x"
+          registry-url: "https://npm.pkg.github.com"
+      - name: Install Bun
+        run: npm install -g bun
+      - run: bun install
+      - name: Biome Check
+        run: bunx biome check
+      - name: Build the playground
+        run:  bun run test
+      - name: Run tsc
+        run: bun run tsc
