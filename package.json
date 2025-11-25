@@ -3,7 +3,7 @@
     "module": "./dist/communication.bs.js",
     "main": "./dist/communication.bs.umd.js",
     "type": "module",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "types": "dist/communication.bs.d.ts",
     "declaration": true,
     "exports": {
