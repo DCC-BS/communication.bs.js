@@ -12,14 +12,17 @@
             "require": "./dist/communication.bs.js.umd.js"
         }
     },
-    "files": ["./dist", "README.md"],
+    "files": [
+        "./dist",
+        "README.md"
+    ],
     "scripts": {
         "check": "biome check --write",
         "build": "vite build",
         "test": "vitest"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.2.4",
+        "@biomejs/biome": "2.3.7",
         "@types/bun": "latest",
         "vite-plugin-dts": "^4.5.4",
         "vitest": "^4.0.13"

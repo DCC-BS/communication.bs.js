@@ -2,6 +2,15 @@
 
 A TypeScript library for type-safe API communication with built-in error handling, schema validation, and Vue composables. Designed for modern web applications that require robust HTTP request handling with automatic response parsing and validation.
 
+This library expects the API to follow a consistent error response format to leverage its full capabilities. The error responses should include fields such as `errorId`, `statusCode`, and an optional `debugMessage` to ensure seamless integration with the library's error handling mechanisms.
+```json
+{ 
+    "errorId": "string",          // Unique identifier for the error type
+    "statusCode": 400,            // HTTP status code associated with the error
+    "debugMessage": "string"      // Optional detailed debug message for developers
+}
+```
+
 ![GitHub License](https://img.shields.io/github/license/DCC-BS/communication.bs.js) [![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev) ![NPM Version](https://img.shields.io/npm/v/%40dcc-bs%2Fcommunication.bs.js)
 
 
@@ -50,6 +59,8 @@ import { apiFetch, isApiError } from '@dcc-bs/communication.bs.js';
 // Simple API call
 const response = await apiFetch<{ message: string }>('/api/hello');
 
+// the resposne is of type { message: string } | ApiError
+// the isApiError function is a type guard so we can narrow the type
 if (isApiError(response)) {
   console.error('API Error:', response.errorId, response.statusCode);
 } else {
@@ -66,7 +77,7 @@ import { z } from 'zod';
 const UserSchema = z.object({
   id: z.number(),
   name: z.string(),
-  email: z.string().email(),
+  email: z.email(),
 });
 
 const response = await apiFetch('/api/user/1', {
@@ -80,6 +91,7 @@ if (!isApiError(response)) {
 ```
 
 ### Vue Composables
+The composables provide a reactive way similar to [`useFetch`](https://nuxt.com/docs/4.x/api/composables/use-fetch) to handle API requests in Vue 3 applications.
 
 ```typescript
 import { useApiFetch, useApiFetchWithSchema } from '@dcc-bs/communication.bs.js';
@@ -87,6 +99,10 @@ import { z } from 'zod';
 
 // Basic composable
 const { data, error, pending } = useApiFetch<User>('/api/user/1');
+
+// data is of type Ref<User | undefined>
+// error is of type Ref<ApiErrorResponse | undefined>
+// pending is of type Ref<boolean>
 
 // With schema validation
 const UserSchema = z.object({
@@ -104,90 +120,58 @@ const { data, error, pending } = useApiFetchWithSchema('/api/user/1', {
 ```typescript
 import { apiStreamFetch } from '@dcc-bs/communication.bs.js';
 
-for await (const chunk of apiStreamFetch('/api/stream', {
-  method: 'POST',
-  body: { prompt: 'Generate text...' },
-})) {
-  console.log('Received:', chunk);
+const response = apiStreamFetch('/api/stream', {
+    method: 'POST',
+    body: { prompt: 'Generate text...' },
+});
+
+if(isApiError(response)) {
+    throw new Error(response.debugMessage);
+}
+
+const reader = response.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, {
+        stream: true,
+    });
+    console.log('Received chunk:', chunk);
 }
 ```
 
-### Multiple Requests
+### Fetch streaming responses with async iteration
 
 ```typescript
 import { apiFetchMany, apiFetchTextMany } from '@dcc-bs/communication.bs.js';
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
 
 // Fetch multiple JSON endpoints
-const results = await apiFetchMany([
-  { url: '/api/users' },
-  { url: '/api/posts' },
-]);
+const results = await apiFetchMany("/api/users", 
+{
+    method: "GET",
+    schema: z.array(UserSchema),
+});
+
+await for(const user of results) {
+    console.log(user.id);
+    console.log(user.name);
+}
 
 // Fetch multiple text endpoints
-const textResults = await apiFetchTextMany([
-  { url: '/api/content/1' },
-  { url: '/api/content/2' },
-]);
-```
+const textResults = await apiFetchTextMany("/api/content/1");
 
-## API Reference
-
-### Core Functions
-
-#### `apiFetch<T>(url: string, options?: ApiFetchOptions): Promise<ApiResponse<T>>`
-
-Main function for making API requests with type safety.
-
-**Options:**
-- `method`: HTTP method (GET, POST, PUT, DELETE, etc.)
-- `body`: Request body (JSON object or FormData)
-- `headers`: Custom headers
-- `signal`: AbortController signal
-- `schema`: Zod schema for response validation
-
-#### `apiFetchMany(requests: ApiFetchOptions[]): Promise<ApiResponse<unknown>[]>`
-
-Execute multiple API requests in parallel.
-
-#### `apiFetchTextMany(requests: ApiFetchOptions[]): Promise<(string | ApiError)[]>`
-
-Execute multiple text-based API requests in parallel.
-
-#### `apiStreamFetch(url: string, options?: ApiFetchOptions): AsyncGenerator<string>`
-
-Handle streaming API responses with async iteration.
-
-#### `isApiError(response: unknown): response is ApiError`
-
-Type guard to check if a response is an API error.
-
-### Types
-
-#### `ApiError`
-
-```typescript
-class ApiError {
-  errorId: string;
-  statusCode: number;
-  debugMessage?: string;
-  $type: 'ApiError';
+await for(const text of textResults) {
+    console.log(text);
 }
 ```
-
-#### `ApiFetchOptions`
-
-```typescript
-interface ApiFetchOptions {
-  method?: string;
-  body?: unknown | FormData;
-  headers?: Record<string, string>;
-  signal?: AbortSignal;
-}
-```
-
-#### `ApiFetchOptionsWithSchema<T extends ZodType>`
-
-Extends `ApiFetchOptions` with required schema property for validation.
 
 ## Development
 
@@ -205,13 +189,7 @@ Run tests with Vitest:
 
 ```bash
 # Run tests
-bun test
-
-# Run tests in watch mode
-bun test:watch
-
-# Generate coverage report
-bun test:coverage
+bun run test
 ```
 
 ### Building

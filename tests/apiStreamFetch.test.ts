@@ -25,7 +25,13 @@ describe("apiStreamFetch", () => {
         expect(response).toBeInstanceOf(ReadableStream);
 
         // Verify we can read from the stream
-        const reader = (response as ReadableStream<Uint8Array>).getReader();
+        if (isApiError(response)) {
+            throw new Error(
+                "Expected a ReadableStream, but received an ApiError",
+            );
+        }
+
+        const reader = response.getReader();
         const { value, done } = await reader.read();
         expect(value).toEqual(new Uint8Array([1, 2, 3]));
         expect(done).toBe(false);
