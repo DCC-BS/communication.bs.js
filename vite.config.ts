@@ -10,6 +10,7 @@ export default defineConfig({
         lib: {
             entry: resolve(__dirname, "src/index.ts"),
             name: "@dcc-bs/commmunication.bs.js",
+            fileName: "communication.bs",
             formats: ["es", "umd"], // Specify browser-compatible formats
         },
         // Include CSS in the build

@@ -1,15 +1,15 @@
 {
     "name": "@dcc-bs/communication.bs.js",
-    "module": "./dist/communication.bs.js.js",
-    "main": "./dist/communication.bs.js.umd.js",
+    "module": "./dist/communication.bs.js",
+    "main": "./dist/communication.bs.umd.js",
     "type": "module",
     "version": "0.0.4",
     "types": "dist/communication.bs.d.ts",
     "declaration": true,
     "exports": {
         ".": {
-            "import": "./dist/communication.bs.js.js",
-            "require": "./dist/communication.bs.js.umd.js"
+            "import": "./dist/communication.bs.js",
+            "require": "./dist/communication.bs.umd.js"
         }
     },
     "files": [
