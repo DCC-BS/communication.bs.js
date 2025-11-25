@@ -1,4 +1,4 @@
-name: Publish Package to Github
+name: Publish Package to NPM
 
 on:
   workflow_dispatch:
@@ -34,7 +34,21 @@ jobs:
       - name: Update version
         run: npm version ${{ github.event.inputs.version_type || 'patch' }} --no-git-tag-version
 
-      - name: Build the playground
+      - name: Configure git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      # Commit the updated package.json version
+      - name: Commit version update
+        run: |
+          git add package.json
+          git commit -m "build: bump version to $(node -p "require('./package.json').version")"
+          git push
+
+      - name: Build the package
         run:  bun run build
       - name: Publish Package
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: bun publish --access public
