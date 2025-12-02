@@ -11,7 +11,7 @@ This library expects the API to follow a consistent error response format to lev
 }
 ```
 
-![GitHub License](https://img.shields.io/github/license/DCC-BS/communication.bs.js) [![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev) ![NPM Version](https://img.shields.io/npm/v/%40dcc-bs%2Fcommunication.bs.js)
+![GitHub License](https://img.shields.io/github/license/DCC-BS/communication.bs.js) [![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev) [![NPM Version](https://img.shields.io/npm/v/%40dcc-bs%2Fcommunication.bs.js)](https://www.npmjs.com/package/@dcc-bs/audio-recorder.bs.js)
 
 
 ## Features
