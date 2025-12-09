@@ -1,7 +1,9 @@
 import { type Ref, ref } from "vue";
-import { apiFetch, isApiError } from "../apiFetch";
-import type { ApiErrorResponse } from "../models/api_error_response";
-import type { ApiFetchOptions } from "../models/api_fetch_options";
+import { createApiClient } from "../apiFetchFactory";
+import { isApiError } from "../apiFetchUtils";
+import { createFetcherBuilder } from "../fetcherFactory";
+import type { ApiErrorResponse } from "../types/api_error_response";
+import type { ApiFetchOptions } from "../types/api_fetch_options";
 
 export type UseApiFetchOutput<T> = {
     data: Ref<T | undefined>;
@@ -9,15 +11,20 @@ export type UseApiFetchOutput<T> = {
     pending: Ref<boolean>;
 };
 
+const defaultFetcher = createFetcherBuilder().build();
+
 export function useApiFetch<T extends object>(
     url: string,
     options?: ApiFetchOptions,
+    fetcher = defaultFetcher,
 ) {
+    const client = createApiClient(fetcher);
     const data = ref<T>();
     const error = ref<ApiErrorResponse>();
     const pending = ref(true);
 
-    apiFetch<T>(url, options)
+    client
+        .apiFetch<T>(url, options)
         .then((response) => {
             if (isApiError(response)) {
                 error.value = response;
