@@ -464,17 +464,39 @@ export function createFetcherBuilder(
                 if (options.dedupeRequests) {
                     fetchPromise = (async () => {
                         try {
-                            return options.retries
+                            const response = options.retries
                                 ? await executeWithRetry(
                                       fetchFn,
                                       options.retries,
                                   )
                                 : await fetchFn();
+
+                            // Apply afterResponse hook inside the stored promise
+                            const finalResponse = options.afterResponse
+                                ? await options.afterResponse(response)
+                                : response;
+
+                            // Debug logging
+                            if (options.debug) {
+                                console.log(
+                                    `[Fetcher] Response ${finalResponse.status}`,
+                                    {
+                                        url: fullURL,
+                                        ok: finalResponse.ok,
+                                    },
+                                );
+                            }
+
+                            return finalResponse;
                         } finally {
                             pendingRequests.delete(cacheKey);
                         }
                     })();
                     pendingRequests.set(cacheKey, fetchPromise);
+
+                    // For deduplicated requests, return the promise directly
+                    // The hook has already been applied inside the promise
+                    return await fetchPromise;
                 } else {
                     fetchPromise = options.retries
                         ? executeWithRetry(fetchFn, options.retries)
@@ -483,12 +505,12 @@ export function createFetcherBuilder(
 
                 const response = await fetchPromise;
 
-                // After response hook
+                // After response hook (only for non-deduplicated requests)
                 const finalResponse = options.afterResponse
                     ? await options.afterResponse(response)
                     : response;
 
-                // Debug logging
+                // Debug logging (only for non-deduplicated requests)
                 if (options.debug) {
                     console.log(`[Fetcher] Response ${finalResponse.status}`, {
                         url: fullURL,

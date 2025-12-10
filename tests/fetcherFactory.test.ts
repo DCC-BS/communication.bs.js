@@ -581,6 +581,139 @@ describe("fetcherFactory", () => {
 
             expect(mockFetch).toHaveBeenCalledTimes(2);
         });
+
+        test("afterResponse hook runs only once for deduplicated requests", async () => {
+            let callCount = 0;
+            const mockFetch = vi.fn().mockImplementation(() => {
+                callCount++;
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            status: 200,
+                            json: () => Promise.resolve({ count: callCount }),
+                        } as Response);
+                    }, 100);
+                });
+            });
+
+            vi.stubGlobal("fetch", mockFetch);
+
+            let afterResponseCallCount = 0;
+            const afterResponseSpy = vi
+                .fn()
+                .mockImplementation(async (response: Response) => {
+                    afterResponseCallCount++;
+                    // Return a modified response to track if hook was applied
+                    return {
+                        ...response,
+                        headers: new Headers({ "x-hook-applied": "true" }),
+                    } as Response;
+                });
+
+            const fetcher = createFetcherBuilder()
+                .enableDeduplication()
+                .setAfterResponse(afterResponseSpy)
+                .build();
+
+            const [response1, response2, response3] = await Promise.all([
+                fetcher("/data", {}),
+                fetcher("/data", {}),
+                fetcher("/data", {}),
+            ]);
+
+            // Network request should only happen once
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+
+            // BUG: afterResponse hook should be called once and all responses should have the hook applied
+            // Currently, only the first caller gets the hook applied, others get raw response
+            expect(afterResponseCallCount).toBe(1);
+
+            // All responses should have the hook applied
+            expect(response1.headers?.get("x-hook-applied")).toBe("true");
+            expect(response2.headers?.get("x-hook-applied")).toBe("true");
+            expect(response3.headers?.get("x-hook-applied")).toBe("true");
+        });
+
+        test("afterResponse hook can safely consume response body with deduplication", async () => {
+            let callCount = 0;
+            const mockFetch = vi.fn().mockImplementation(() => {
+                callCount++;
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve({
+                            ok: true,
+                            status: 200,
+                            json: vi
+                                .fn()
+                                .mockResolvedValue({
+                                    data: "test",
+                                    count: callCount,
+                                }),
+                            clone: function () {
+                                return {
+                                    ok: this.ok,
+                                    status: this.status,
+                                    json: this.json,
+                                };
+                            },
+                        } as Response);
+                    }, 100);
+                });
+            });
+
+            vi.stubGlobal("fetch", mockFetch);
+
+            let afterResponseCallCount = 0;
+            const afterResponseSpy = vi
+                .fn()
+                .mockImplementation(async (response: Response) => {
+                    afterResponseCallCount++;
+                    // Consume the response body (common pattern)
+                    const data = await response.json();
+                    // Return a new response with the parsed data
+                    return {
+                        ...response,
+                        json: () => Promise.resolve(data),
+                        parsedData: data,
+                    } as Response & { parsedData: any };
+                });
+
+            const fetcher = createFetcherBuilder()
+                .enableDeduplication()
+                .setAfterResponse(afterResponseSpy)
+                .build();
+
+            const [response1, response2, response3] = await Promise.all([
+                fetcher("/data", {}),
+                fetcher("/data", {}),
+                fetcher("/data", {}),
+            ]);
+
+            // Network request should only happen once
+            expect(mockFetch).toHaveBeenCalledTimes(1);
+
+            // afterResponse hook should only be called once
+            expect(afterResponseCallCount).toBe(1);
+
+            // All responses should be able to access the parsed data
+            expect((response1 as any).parsedData).toEqual({
+                data: "test",
+                count: 1,
+            });
+            expect((response2 as any).parsedData).toEqual({
+                data: "test",
+                count: 1,
+            });
+            expect((response3 as any).parsedData).toEqual({
+                data: "test",
+                count: 1,
+            });
+
+            // All responses should be the same object
+            expect(response1).toBe(response2);
+            expect(response2).toBe(response3);
+        });
     });
 
     describe("combined configuration", () => {
