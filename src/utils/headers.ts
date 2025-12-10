@@ -18,5 +18,10 @@ export function normalizeHeaders(
     if (Array.isArray(headers)) {
         return Object.fromEntries(headers);
     }
-    return headers;
+
+    const obj: Record<string, string> = {};
+    for (const [key, value] of Object.entries(headers)) {
+        obj[key] = Array.isArray(value) ? value.join(", ") : (value as string);
+    }
+    return obj;
 }
