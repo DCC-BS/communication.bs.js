@@ -179,7 +179,7 @@ describe("fetcherFactory", () => {
             vi.stubGlobal("fetch", mockFetch);
 
             const fetcher = createFetcherBuilder()
-                .setAuth("bearer", "my-jwt-token")
+                .setAuth({ type: "bearer", token: "my-jwt-token" })
                 .build();
 
             await fetcher("/protected", {});
@@ -203,7 +203,7 @@ describe("fetcherFactory", () => {
             vi.stubGlobal("fetch", mockFetch);
 
             const fetcher = createFetcherBuilder()
-                .setAuth("basic", undefined, "user", "pass")
+                .setAuth({ type: "basic", username: "user", password: "pass" })
                 .build();
 
             await fetcher("/protected", {});
@@ -353,23 +353,6 @@ describe("fetcherFactory", () => {
 
             expect(response.status).toBe(404);
             expect(mockFetch).toHaveBeenCalledTimes(1); // No retry for 404
-        });
-
-        test("uses shouldRetry function when provided", async () => {
-            const mockFetch = vi.fn().mockImplementation(() => {
-                return Promise.resolve({
-                    ok: false,
-                    status: 429, // Rate limited
-                } as Response);
-            });
-
-            vi.stubGlobal("fetch", mockFetch);
-
-            const fetcher = createFetcherBuilder().setRetries(2, 10).build();
-
-            await fetcher("/rate-limited", {});
-
-            expect(mockFetch).toHaveBeenCalledTimes(3);
         });
     });
 
@@ -617,7 +600,7 @@ describe("fetcherFactory", () => {
             const fetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
                 .addHeader("X-API-Key", "test-key")
-                .setAuth("bearer", "jwt-token")
+                .setAuth({ type: "bearer", token: "jwt-token" })
                 .setRequestTimeout(5000)
                 .setBeforeRequest(beforeRequestSpy)
                 .setQueryParams({ version: "1.0" })

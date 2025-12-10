@@ -1,4 +1,5 @@
 import type { ApiFetchOptions } from "./types/api_fetch_options";
+import type { AuthConfig } from "./types/auth";
 import type { Fetcher } from "./types/fetcher";
 import type { FetcherBuilderOptions } from "./types/fetcher_builder_options";
 import type {
@@ -36,7 +37,7 @@ export function createFetcherBuilder(
      * Adds a custom header to all requests.
      *
      * @param key - Header name
-     * @param value - Header valueg
+     * @param value - Header value
      * @returns A new builder instance with the header added
      *
      * @example
@@ -46,6 +47,22 @@ export function createFetcherBuilder(
         return createFetcherBuilder({
             ...options,
             headers: { ...options.headers, [key]: value },
+        });
+    }
+
+    /**
+     * Adds multiple custom headers to all requests.
+     *
+     * @param headers - An object containing header key-value pairs
+     * @returns A new builder instance with the headers added
+     *
+     * @example
+     * builder.addHeaders({ "X-API-Key": "secret123", "X-Client-Version": "1.0.0" })
+     */
+    function addHeaders(headers: Record<string, string>) {
+        return createFetcherBuilder({
+            ...options,
+            headers: { ...options.headers, ...headers },
         });
     }
 
@@ -113,15 +130,10 @@ export function createFetcherBuilder(
      * @example
      * builder.setAuth("basic", undefined, "username", "password")
      */
-    function setAuth(
-        type: "bearer" | "basic",
-        token?: string,
-        username?: string,
-        password?: string,
-    ) {
+    function setAuth(config: AuthConfig) {
         return createFetcherBuilder({
             ...options,
-            auth: { type, token, username, password },
+            auth: config,
         });
     }
 
@@ -319,13 +331,15 @@ export function createFetcherBuilder(
 
                 // Add query parameters
                 if (options.queryParams) {
-                    const urlObj = new URL(fullURL, "http://localhost");
+                    const params = new URLSearchParams();
                     for (const [key, value] of Object.entries(
                         options.queryParams,
                     )) {
-                        urlObj.searchParams.set(key, String(value));
+                        params.set(key, String(value));
                     }
-                    fullURL = urlObj.toString();
+
+                    const separator = fullURL.includes("?") ? "&" : "?";
+                    fullURL = `${fullURL}${separator}${params.toString()}`;
                 }
 
                 // Build headers
@@ -498,6 +512,7 @@ export function createFetcherBuilder(
 
     return {
         addHeader,
+        addHeaders,
         setBaseURL,
         setRequestTimeout,
         setRetries,

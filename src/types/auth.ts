@@ -15,13 +15,15 @@
  *   password: "pass"
  * };
  */
-export type AuthConfig = {
-    /** The type of authentication to use */
-    type: "bearer" | "basic";
-    /** Bearer token for bearer authentication */
-    token?: string;
-    /** Username for basic authentication */
-    username?: string;
-    /** Password for basic authentication */
-    password?: string;
+export type AuthConfig = BearerAuthConfig | BasicAuthConfig;
+
+export type BearerAuthConfig = {
+    type: "bearer";
+    token: string;
+};
+
+export type BasicAuthConfig = {
+    type: "basic";
+    username: string;
+    password: string;
 };

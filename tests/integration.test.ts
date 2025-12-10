@@ -93,12 +93,12 @@ describe("Integration Tests", () => {
 
             const adminFetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
-                .setAuth("bearer", "admin-token")
+                .setAuth({ type: "bearer", token: "admin-token" })
                 .build();
 
             const userFetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
-                .setAuth("bearer", "user-token")
+                .setAuth({ type: "bearer", token: "user-token" })
                 .build();
 
             const adminClient = createApiClient(adminFetcher);
@@ -457,7 +457,7 @@ describe("Integration Tests", () => {
             const fetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
                 .addHeader("X-App-Version", "1.0.0")
-                .setAuth("bearer", "production-token")
+                .setAuth({ type: "bearer", token: "production-token" })
                 .setRequestTimeout(5000)
                 .setRetries(3, 1000)
                 .setBeforeRequest(() => {

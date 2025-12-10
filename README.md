@@ -277,7 +277,7 @@ const fetcher = createFetcherBuilder()
   .setRetries(
     3, // Max 3 retries
     1000, // Initial delay in ms
-    retryOn: [500, 502, 503, 504], // Retry on these status codes
+    [500, 502, 503, 504], // Retry on these status codes
   )
   .build();
 ```
