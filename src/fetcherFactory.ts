@@ -245,8 +245,8 @@ export function createFetcherBuilder(
      * @example
      * builder.enableDebug()
      */
-    function enableDebug() {
-        return createFetcherBuilder({ ...options, debug: true });
+    function enableDebug(isEnabled: boolean = true) {
+        return createFetcherBuilder({ ...options, debug: isEnabled });
     }
 
     /**

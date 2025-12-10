@@ -2,11 +2,11 @@
 
 A TypeScript library for type-safe API communication with built-in error handling, schema validation, and Vue composables. Designed for modern web applications that require robust HTTP request handling with automatic response parsing and validation.
 
-This library expects the API to follow a consistent error response format to leverage its full capabilities. The error responses should include fields such as `errorId`, `statusCode`, and an optional `debugMessage` to ensure seamless integration with the library's error handling mechanisms.
+This library expects the API to follow a consistent error response format to leverage its full capabilities. The error responses should include fields such as `errorId`, `status`, and an optional `debugMessage` to ensure seamless integration with the library's error handling mechanisms.
 ```json
 { 
     "errorId": "string",          // Unique identifier for the error type
-    "statusCode": 400,            // HTTP status code associated with the error
+    "status": 400,                // HTTP status code associated with the error
     "debugMessage": "string"      // Optional detailed debug message for developers
 }
 ```
@@ -26,7 +26,7 @@ This library expects the API to follow a consistent error response format to lev
 - **Streaming Support**: Handle streaming API responses with ease including async iteration
 - **Vue Composables**: Ready-to-use Vue 3 composables for reactive API calls
 - **Multiple Response Types**: Support for JSON, text, and streaming responses
-- **Request Hooks**: Intercept and modify requests with beforeRequest, afterResponse, and onError hooks
+- **Request Hooks**: Intercept requests with beforeRequest, afterResponse, and onError hooks
 - **Automatic Retries**: Configurable retry logic with exponential backoff
 - **Request Deduplication**: Prevent duplicate simultaneous requests automatically
 - **Timeout Management**: Set request timeouts with automatic abort
@@ -274,12 +274,11 @@ const fetcher = createFetcherBuilder()
 const fetcher = createFetcherBuilder()
   .setBaseURL('https://api.example.com')
   .setRequestTimeout(5000) // 5 second timeout
-  .setRetries({
-    maxRetries: 3,
-    retryDelay: 1000, // Initial delay in ms
+  .setRetries(
+    3, // Max 3 retries
+    1000, // Initial delay in ms
     retryOn: [500, 502, 503, 504], // Retry on these status codes
-    shouldRetry: (response) => !response.ok && response.status >= 500
-  })
+  )
   .build();
 ```
 
@@ -289,13 +288,7 @@ const fetcher = createFetcherBuilder()
 const fetcher = createFetcherBuilder()
   .setBaseURL('https://api.example.com')
   .setBeforeRequest((url, options) => {
-    // Modify request before sending
-    console.log(`Sending request to: ${url}`);
-    options.headers = {
-      ...options.headers,
-      'X-Request-Time': new Date().toISOString()
-    };
-    return { url, options };
+      console.log(`Sending request to: ${url}`);
   })
   .setAfterResponse((response) => {
     // Process response after receiving
@@ -303,9 +296,7 @@ const fetcher = createFetcherBuilder()
     return response;
   })
   .setOnError((error) => {
-    // Handle errors globally
     console.error('Request failed:', error);
-    return error;
   })
   .build();
 ```
@@ -402,8 +393,8 @@ export default defineNuxtPlugin(() => {
       token: config.public.apiToken
     })
     .setRequestTimeout(10000)
-    .setRetries({ maxRetries: 2, retryDelay: 1000 })
-    .enableDebug()
+    .setRetries(2, 1000)
+    .enableDebug(!!import.meta.dev)
     .build();
 
   // Create the API client
@@ -418,12 +409,21 @@ export default defineNuxtPlugin(() => {
 });
 ```
 
+**Composable to access the API client**:
+```ts
+// composables/useApi.ts
+export function useApi() {
+    const { $api } = useNuxtApp();
+    return $api;
+}
+```
+
 **Usage in pages/components**:
 ```vue
 <script setup lang="ts">
 import { z } from 'zod';
 
-const { $api } = useNuxtApp();
+const { apiFetch } = useApi();
 
 const UserSchema = z.object({
   id: z.number(),
@@ -432,7 +432,7 @@ const UserSchema = z.object({
 });
 
 // Use the provided API client
-const response = await $api.apiFetch('/users/1', {
+const response = await apiFetch('/users/1', {
   schema: UserSchema
 });
 
@@ -441,91 +441,6 @@ if (!isApiError(response)) {
 }
 </script>
 ```
-
-**Creating composables with the API client**:
-```typescript
-// composables/useUser.ts
-export const useUser = (userId: number) => {
-  const { $api } = useNuxtApp();
-  const user = ref(null);
-  const loading = ref(false);
-  const error = ref(null);
-
-  const fetchUser = async () => {
-    loading.value = true;
-    const response = await $api.apiFetch(`/users/${userId}`);
-    
-    if (isApiError(response)) {
-      error.value = response;
-    } else {
-      user.value = response;
-    }
-    loading.value = false;
-  };
-
-  onMounted(() => fetchUser());
-
-  return { user, loading, error, refetch: fetchUser };
-};
-```
-
-### Vue 3 Plugin
-
-Create a Vue 3 plugin for non-Nuxt applications:
-
-**`plugins/api.ts`**:
-```typescript
-import { createFetcherBuilder, createApiClient } from '@dcc-bs/communication.bs.js';
-import type { App } from 'vue';
-
-export const apiPlugin = {
-  install(app: App) {
-    const fetcher = createFetcherBuilder()
-      .setBaseURL(import.meta.env.VITE_API_BASE_URL)
-      .setAuth({
-        type: 'bearer',
-        token: import.meta.env.VITE_API_TOKEN
-      })
-      .enableDebug()
-      .build();
-
-    const apiClient = createApiClient(fetcher);
-
-    // Provide globally
-    app.provide('api', apiClient);
-    
-    // Also add to global properties for Options API
-    app.config.globalProperties.$api = apiClient;
-  }
-};
-```
-
-**Register in main.ts**:
-```typescript
-import { createApp } from 'vue';
-import App from './App.vue';
-import { apiPlugin } from './plugins/api';
-
-const app = createApp(App);
-app.use(apiPlugin);
-app.mount('#app');
-```
-
-**Usage in components**:
-```vue
-<script setup lang="ts">
-import { inject } from 'vue';
-import type { ApiClient } from '@dcc-bs/communication.bs.js';
-
-const api = inject<ApiClient>('api');
-
-const loadData = async () => {
-  const response = await api.apiFetch('/data');
-  // Handle response...
-};
-</script>
-```
-
 ## Development
 
 ### Setup
@@ -607,7 +522,7 @@ The library provides standardized error handling with predefined error types:
 
 All errors follow the `ApiError` structure with:
 - `errorId`: Unique error identifier
-- `statusCode`: HTTP status code
+- `status`: HTTP status code
 - `debugMessage`: Optional debug information
 
 ### Type Guard
@@ -622,102 +537,11 @@ const response = await apiFetch('/api/data');
 if (isApiError(response)) {
   // response is ApiError
   console.error(`Error ${response.errorId}: ${response.debugMessage}`);
-  console.error(`Status: ${response.statusCode}`);
+  console.error(`Status: ${response.status}`);
 } else {
   // response is your data type
   console.log(response);
 }
-```
-
-## API Reference
-
-### Core Types
-
-#### `ApiClient`
-The main client interface returned by `createApiClient()`:
-
-```typescript
-interface ApiClient {
-  apiFetch: ApiFetchFunction;
-  apiStreamFetch: (url: string, options?: ApiFetchOptions) => Promise<ApiResponse<ReadableStream<Uint8Array>>>;
-  apiFetchTextMany: (url: string, options?: ApiFetchOptions) => AsyncGenerator<string, void, void>;
-  apiFetchMany: <T extends ZodType>(url: string, options: ApiFetchOptionsWithSchema<T>) => AsyncGenerator<z.infer<T>, void, void>;
-}
-```
-
-#### `ApiFetchFunction`
-Overloaded function type for type-safe API requests:
-
-```typescript
-interface ApiFetchFunction {
-  // With schema validation
-  <T extends ZodType>(url: string, options: ApiFetchOptionsWithSchema<T>): Promise<ApiResponse<z.infer<T>>>;
-  // Without schema validation
-  <T extends object>(url: string, options?: ApiFetchOptions): Promise<ApiResponse<T>>;
-}
-```
-
-#### `ApiResponse<T>`
-Union type representing either success data or an error:
-
-```typescript
-type ApiResponse<T> = T | ApiError;
-```
-
-#### `ApiError`
-Error class with structured error information:
-
-```typescript
-class ApiError {
-  errorId: string;
-  statusCode: number;
-  debugMessage?: string;
-}
-```
-
-### Factory Functions
-
-#### `createApiClient(fetcher?: Fetcher): ApiClient`
-Creates a new API client instance with an optional custom fetcher.
-
-#### `createFetcherBuilder(): FetcherBuilder`
-Creates a new fetcher builder for configuring custom HTTP clients. Returns a builder with chainable configuration methods:
-
-- `.setBaseURL(url: string)` - Set base URL for all requests
-- `.addHeader(key: string, value: string)` - Add custom header
-- `.setAuth(config: AuthConfig)` - Configure authentication
-- `.setRequestTimeout(ms: number)` - Set request timeout
-- `.setRetries(config: RetryConfig)` - Configure retry logic
-- `.setBeforeRequest(hook: BeforeRequestHook)` - Add pre-request hook
-- `.setAfterResponse(hook: AfterResponseHook)` - Add post-response hook
-- `.setOnError(hook: OnErrorHook)` - Add error handler hook
-- `.setQueryParams(params: Record<string, string>)` - Set default query parameters
-- `.setCredentials(mode: RequestCredentials)` - Set credentials mode
-- `.setMode(mode: RequestMode)` - Set CORS mode
-- `.setCache(cache: RequestCache)` - Set cache strategy
-- `.enableDebug()` - Enable debug logging
-- `.enableDeduplication()` - Enable request deduplication
-- `.build(): Fetcher` - Build and return the configured fetcher
-
-### Utility Functions
-
-#### `isApiError(response: unknown): response is ApiError`
-Type guard to check if a response is an ApiError.
-
-### Exported Types
-
-```typescript
-// From '@dcc-bs/communication.bs.js'
-export type { ApiClient } from './types/api_client';
-export type { ApiFetchFunction } from './types/api_client';
-export type { ApiResponse } from './types/api_client';
-export type { ApiError } from './types/api_error';
-export type { ApiErrorResponse } from './types/api_error_response';
-export type { ApiFetchOptions, ApiFetchOptionsWithSchema } from './types/api_fetch_options';
-export type { AuthConfig } from './types/auth';
-export type { Fetcher } from './types/fetcher';
-export type { FetcherBuilderOptions } from './types/fetcher_builder_options';
-export type { BeforeRequestHook, AfterResponseHook, OnErrorHook } from './types/hooks';
 ```
 
 ## License
