@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 import { createApiClient } from "../src/apiFetchFactory";
 import { ApiError } from "../src/types/api_error";
@@ -34,14 +34,23 @@ describe("createApiClient", () => {
             const mockFetcher: Fetcher = vi.fn().mockResolvedValue({
                 ok: true,
                 status: 200,
-                json: () => Promise.resolve({ id: "1", name: "Alice", email: "alice@example.com" }),
+                json: () =>
+                    Promise.resolve({
+                        id: "1",
+                        name: "Alice",
+                        email: "alice@example.com",
+                    }),
             } as Response);
 
             const client = createApiClient(mockFetcher);
             const response = await client.apiFetch<User>("/users/1");
 
             expect(mockFetcher).toHaveBeenCalledWith("/users/1", {});
-            expect(response).toEqual({ id: "1", name: "Alice", email: "alice@example.com" });
+            expect(response).toEqual({
+                id: "1",
+                name: "Alice",
+                email: "alice@example.com",
+            });
         });
 
         test("passes options to custom fetcher", async () => {
@@ -52,7 +61,10 @@ describe("createApiClient", () => {
             } as Response);
 
             const client = createApiClient(mockFetcher);
-            await client.apiFetch("/api/data", { method: "POST", body: { test: true } });
+            await client.apiFetch("/api/data", {
+                method: "POST",
+                body: { test: true },
+            });
 
             expect(mockFetcher).toHaveBeenCalledWith("/api/data", {
                 method: "POST",
@@ -63,7 +75,11 @@ describe("createApiClient", () => {
 
     describe("apiFetch method", () => {
         test("returns data on successful request", async () => {
-            const mockData = { id: "1", name: "Alice", email: "alice@example.com" };
+            const mockData = {
+                id: "1",
+                name: "Alice",
+                email: "alice@example.com",
+            };
             const mockFetcher: Fetcher = vi.fn().mockResolvedValue({
                 ok: true,
                 status: 200,
@@ -77,7 +93,11 @@ describe("createApiClient", () => {
         });
 
         test("validates data with schema", async () => {
-            const mockData = { id: "1", name: "Alice", email: "alice@example.com" };
+            const mockData = {
+                id: "1",
+                name: "Alice",
+                email: "alice@example.com",
+            };
             const mockFetcher: Fetcher = vi.fn().mockResolvedValue({
                 ok: true,
                 status: 200,
@@ -85,7 +105,9 @@ describe("createApiClient", () => {
             } as Response);
 
             const client = createApiClient(mockFetcher);
-            const response = await client.apiFetch("/users/1", { schema: UserSchema });
+            const response = await client.apiFetch("/users/1", {
+                schema: UserSchema,
+            });
 
             expect(response).toEqual(mockData);
         });
@@ -99,12 +121,14 @@ describe("createApiClient", () => {
             } as Response);
 
             const client = createApiClient(mockFetcher);
-            const response = await client.apiFetch("/users/1", { schema: UserSchema });
+            const response = await client.apiFetch("/users/1", {
+                schema: UserSchema,
+            });
 
             expect(response).toBeInstanceOf(ApiError);
             if (response instanceof ApiError) {
                 expect(response.errorId).toBe("schema_validation_failed");
-                expect(response.statusCode).toBe(500);
+                expect(response.status).toBe(500);
                 expect(response.debugMessage).toContain("validation failed");
             }
         });
@@ -113,10 +137,11 @@ describe("createApiClient", () => {
             const mockFetcher: Fetcher = vi.fn().mockResolvedValue({
                 ok: false,
                 status: 404,
-                json: () => Promise.resolve({
-                    errorId: "not_found",
-                    debugMessage: "User not found",
-                }),
+                json: () =>
+                    Promise.resolve({
+                        errorId: "not_found",
+                        debugMessage: "User not found",
+                    }),
             } as Response);
 
             const client = createApiClient(mockFetcher);
@@ -125,13 +150,15 @@ describe("createApiClient", () => {
             expect(response).toBeInstanceOf(ApiError);
             if (response instanceof ApiError) {
                 expect(response.errorId).toBe("not_found");
-                expect(response.statusCode).toBe(404);
+                expect(response.status).toBe(404);
                 expect(response.debugMessage).toBe("User not found");
             }
         });
 
         test("handles network errors", async () => {
-            const mockFetcher: Fetcher = vi.fn().mockRejectedValue(new Error("Network error"));
+            const mockFetcher: Fetcher = vi
+                .fn()
+                .mockRejectedValue(new Error("Network error"));
 
             const client = createApiClient(mockFetcher);
             const response = await client.apiFetch<User>("/users/1");
@@ -139,7 +166,7 @@ describe("createApiClient", () => {
             expect(response).toBeInstanceOf(ApiError);
             if (response instanceof ApiError) {
                 expect(response.errorId).toBe("fetch_failed");
-                expect(response.statusCode).toBe(500);
+                expect(response.status).toBe(500);
                 expect(response.debugMessage).toBe("Network error");
             }
         });
@@ -155,7 +182,7 @@ describe("createApiClient", () => {
             expect(response).toBeInstanceOf(ApiError);
             if (response instanceof ApiError) {
                 expect(response.errorId).toBe("request_aborted");
-                expect(response.statusCode).toBe(499);
+                expect(response.status).toBe(499);
             }
         });
     });
@@ -179,10 +206,11 @@ describe("createApiClient", () => {
             const mockFetcher: Fetcher = vi.fn().mockResolvedValue({
                 ok: false,
                 status: 500,
-                json: () => Promise.resolve({
-                    errorId: "server_error",
-                    debugMessage: "Internal server error",
-                }),
+                json: () =>
+                    Promise.resolve({
+                        errorId: "server_error",
+                        debugMessage: "Internal server error",
+                    }),
             } as Response);
 
             const client = createApiClient(mockFetcher);
@@ -191,12 +219,14 @@ describe("createApiClient", () => {
             expect(response).toBeInstanceOf(ApiError);
             if (response instanceof ApiError) {
                 expect(response.errorId).toBe("server_error");
-                expect(response.statusCode).toBe(500);
+                expect(response.status).toBe(500);
             }
         });
 
         test("handles network errors in streaming", async () => {
-            const mockFetcher: Fetcher = vi.fn().mockRejectedValue(new Error("Connection failed"));
+            const mockFetcher: Fetcher = vi
+                .fn()
+                .mockRejectedValue(new Error("Connection failed"));
 
             const client = createApiClient(mockFetcher);
             const response = await client.apiStreamFetch("/stream");
@@ -243,9 +273,10 @@ describe("createApiClient", () => {
             const mockFetcher: Fetcher = vi.fn().mockResolvedValue({
                 ok: false,
                 status: 404,
-                json: () => Promise.resolve({
-                    errorId: "not_found",
-                }),
+                json: () =>
+                    Promise.resolve({
+                        errorId: "not_found",
+                    }),
             } as Response);
 
             const client = createApiClient(mockFetcher);
@@ -285,7 +316,9 @@ describe("createApiClient", () => {
             const mockStream = new ReadableStream({
                 start(controller) {
                     for (const user of users) {
-                        controller.enqueue(encoder.encode(JSON.stringify(user)));
+                        controller.enqueue(
+                            encoder.encode(JSON.stringify(user)),
+                        );
                     }
                     controller.close();
                 },
@@ -300,7 +333,9 @@ describe("createApiClient", () => {
             const client = createApiClient(mockFetcher);
             const results: User[] = [];
 
-            for await (const user of client.apiFetchMany("/users", { schema: UserSchema })) {
+            for await (const user of client.apiFetchMany("/users", {
+                schema: UserSchema,
+            })) {
                 results.push(user);
             }
 
@@ -313,7 +348,9 @@ describe("createApiClient", () => {
 
             const mockStream = new ReadableStream({
                 start(controller) {
-                    controller.enqueue(encoder.encode(JSON.stringify(invalidData)));
+                    controller.enqueue(
+                        encoder.encode(JSON.stringify(invalidData)),
+                    );
                     controller.close();
                 },
             });
@@ -327,7 +364,9 @@ describe("createApiClient", () => {
             const client = createApiClient(mockFetcher);
 
             await expect(async () => {
-                for await (const _ of client.apiFetchMany("/users", { schema: UserSchema })) {
+                for await (const _ of client.apiFetchMany("/users", {
+                    schema: UserSchema,
+                })) {
                     // Should throw on validation error
                 }
             }).rejects.toThrow();
@@ -352,7 +391,9 @@ describe("createApiClient", () => {
             const client = createApiClient(mockFetcher);
 
             await expect(async () => {
-                for await (const _ of client.apiFetchMany("/data", { schema: UserSchema })) {
+                for await (const _ of client.apiFetchMany("/data", {
+                    schema: UserSchema,
+                })) {
                     // Should throw on JSON parse error
                 }
             }).rejects.toThrow();

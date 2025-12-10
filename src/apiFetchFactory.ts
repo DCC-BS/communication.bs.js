@@ -13,15 +13,15 @@ import type {
 } from "./types/api_fetch_options.js";
 import type { Fetcher } from "./types/fetcher.js";
 
-const defaultFetcher = createFetcherBuilder().build();
+export function createApiClient(fetcher?: Fetcher): ApiClient {
+    const _fetch = fetcher ?? createFetcherBuilder().build();
 
-export function createApiClient(fetcher: Fetcher = defaultFetcher): ApiClient {
     const apiFetch = (async (
         url: string,
         options?: ApiFetchOptions | ApiFetchOptionsWithSchema<ZodType>,
     ): Promise<ApiResponse<unknown>> => {
         try {
-            const response = await fetcher(url, options ?? {});
+            const response = await _fetch(url, options ?? {});
 
             if (response.ok) {
                 const data = await response.json();
@@ -55,7 +55,7 @@ export function createApiClient(fetcher: Fetcher = defaultFetcher): ApiClient {
         options?: ApiFetchOptions,
     ): Promise<ApiResponse<ReadableStream<Uint8Array>>> {
         try {
-            const response = await fetcher(url, options ?? {});
+            const response = await _fetch(url, options ?? {});
 
             if (response.ok) {
                 return response.body as ReadableStream<Uint8Array>;
@@ -72,7 +72,7 @@ export function createApiClient(fetcher: Fetcher = defaultFetcher): ApiClient {
         options?: ApiFetchOptions,
     ): AsyncGenerator<string, void, void> {
         try {
-            const response = await fetcher(url, options ?? {});
+            const response = await _fetch(url, options ?? {});
 
             if (response.ok) {
                 const reader = response.body?.getReader();

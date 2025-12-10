@@ -1,5 +1,9 @@
-import type { AfterResponseHook, BeforeRequestHook, OnErrorHook } from "./hooks";
 import type { AuthConfig } from "./auth";
+import type {
+    AfterResponseHook,
+    BeforeRequestHook,
+    OnErrorHook,
+} from "./hooks";
 
 /**
  * Configuration options for the fetcher builder.

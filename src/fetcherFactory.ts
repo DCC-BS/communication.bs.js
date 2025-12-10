@@ -275,12 +275,12 @@ export function createFetcherBuilder(
         try {
             const response = await fn();
 
+            const isRetryErrorCode = options.retryOn
+                ? options.retryOn.includes(response.status)
+                : !response.ok;
+
             // Check if we should retry based on status code
-            if (
-                retriesLeft > 0 &&
-                options.retryOn &&
-                options.retryOn.includes(response.status)
-            ) {
+            if (retriesLeft > 0 && isRetryErrorCode) {
                 await new Promise((resolve) =>
                     globalThis.setTimeout(resolve, options.retryDelay || 1000),
                 );

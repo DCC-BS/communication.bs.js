@@ -101,7 +101,7 @@ describe("apiStreamFetch", () => {
         expect(isApiError(response)).toBe(true);
         if (isApiError(response)) {
             expect(response.errorId).toBe("request_aborted");
-            expect(response.statusCode).toBe(499);
+            expect(response.status).toBe(499);
         }
     });
 
@@ -172,7 +172,7 @@ describe("apiStreamFetch", () => {
             "https://api.example.com/stream",
             expect.objectContaining({
                 method: "POST",
-                body: requestBody,
+                body: JSON.stringify(requestBody),
             }),
         );
     });

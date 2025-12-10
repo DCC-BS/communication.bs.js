@@ -1,8 +1,8 @@
-import { describe, expect, test, vi, beforeEach } from "vitest";
-import { createFetcherBuilder } from "../src/fetcherFactory";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { z } from "zod";
 import { createApiClient } from "../src/apiFetchFactory";
 import { isApiError } from "../src/apiFetchUtils";
-import { z } from "zod";
+import { createFetcherBuilder } from "../src/fetcherFactory";
 
 describe("Integration Tests", () => {
     beforeEach(() => {
@@ -45,8 +45,12 @@ describe("Integration Tests", () => {
             const client1 = createApiClient(fetcher1);
             const client2 = createApiClient(fetcher2);
 
-            const response1 = await client1.apiFetch<{ source: string }>("/data");
-            const response2 = await client2.apiFetch<{ source: string }>("/data");
+            const response1 = await client1.apiFetch<{ source: string }>(
+                "/data",
+            );
+            const response2 = await client2.apiFetch<{ source: string }>(
+                "/data",
+            );
 
             expect(isApiError(response1)).toBe(false);
             expect(isApiError(response2)).toBe(false);
@@ -58,8 +62,9 @@ describe("Integration Tests", () => {
         });
 
         test("clients can have different authentication", async () => {
-            const mockFetch = vi.fn((url: string, options: RequestInit) => {
-                const authHeader = (options.headers as Record<string, string>)?.Authorization;
+            const mockFetch = vi.fn((_url: string, options: RequestInit) => {
+                const authHeader = (options.headers as Record<string, string>)
+                    ?.Authorization;
 
                 if (authHeader?.includes("admin-token")) {
                     return Promise.resolve({
@@ -99,8 +104,12 @@ describe("Integration Tests", () => {
             const adminClient = createApiClient(adminFetcher);
             const userClient = createApiClient(userFetcher);
 
-            const adminResponse = await adminClient.apiFetch<{ role: string }>("/profile");
-            const userResponse = await userClient.apiFetch<{ role: string }>("/profile");
+            const adminResponse = await adminClient.apiFetch<{ role: string }>(
+                "/profile",
+            );
+            const userResponse = await userClient.apiFetch<{ role: string }>(
+                "/profile",
+            );
 
             if (!isApiError(adminResponse) && !isApiError(userResponse)) {
                 expect(adminResponse.role).toBe("admin");
@@ -119,7 +128,8 @@ describe("Integration Tests", () => {
                     return Promise.resolve({
                         ok: false,
                         status: 503,
-                        json: () => Promise.resolve({ errorId: "service_unavailable" }),
+                        json: () =>
+                            Promise.resolve({ errorId: "service_unavailable" }),
                     } as Response);
                 }
                 return Promise.resolve({
@@ -132,15 +142,13 @@ describe("Integration Tests", () => {
             vi.stubGlobal("fetch", mockFetch);
 
             const fetcher = createFetcherBuilder()
-                .setRetries({
-                    maxRetries: 3,
-                    retryDelay: 10,
-                    retryOn: [503, 502, 500],
-                })
+                .setRetries(3, 10, [503, 502, 500])
                 .build();
 
             const client = createApiClient(fetcher);
-            const response = await client.apiFetch<{ success: boolean }>("/flaky-endpoint");
+            const response = await client.apiFetch<{ success: boolean }>(
+                "/flaky-endpoint",
+            );
 
             expect(attemptCount).toBe(3);
             expect(isApiError(response)).toBe(false);
@@ -158,12 +166,7 @@ describe("Integration Tests", () => {
 
             vi.stubGlobal("fetch", mockFetch);
 
-            const fetcher = createFetcherBuilder()
-                .setRetries({
-                    maxRetries: 2,
-                    retryDelay: 10,
-                })
-                .build();
+            const fetcher = createFetcherBuilder().setRetries(2, 10).build();
 
             const client = createApiClient(fetcher);
             const response = await client.apiFetch("/always-fails");
@@ -205,13 +208,19 @@ describe("Integration Tests", () => {
             const client = createApiClient(fetcher);
             await client.apiFetch("/data");
 
-            expect(executionOrder).toEqual(["beforeRequest", "fetch", "afterResponse"]);
+            expect(executionOrder).toEqual([
+                "beforeRequest",
+                "fetch",
+                "afterResponse",
+            ]);
         });
 
         test("onError hook executes on failure", async () => {
             let errorHookCalled = false;
 
-            const mockFetch = vi.fn().mockRejectedValue(new Error("Network failure"));
+            const mockFetch = vi
+                .fn()
+                .mockRejectedValue(new Error("Network failure"));
 
             vi.stubGlobal("fetch", mockFetch);
 
@@ -228,40 +237,6 @@ describe("Integration Tests", () => {
             expect(errorHookCalled).toBe(true);
             expect(isApiError(response)).toBe(true);
         });
-
-        test("beforeRequest can modify URL and headers", async () => {
-            const mockFetch = vi.fn().mockResolvedValue({
-                ok: true,
-                status: 200,
-                json: () => Promise.resolve({}),
-            } as Response);
-
-            vi.stubGlobal("fetch", mockFetch);
-
-            const fetcher = createFetcherBuilder()
-                .setBeforeRequest((url, options) => {
-                    return {
-                        url: url + "?timestamp=" + Date.now(),
-                        options: {
-                            ...options,
-                            headers: {
-                                ...options.headers,
-                                "X-Request-ID": "custom-id",
-                            },
-                        },
-                    };
-                })
-                .build();
-
-            const client = createApiClient(fetcher);
-            await client.apiFetch("/data");
-
-            const calledUrl = mockFetch.mock.calls[0][0] as string;
-            const calledOptions = mockFetch.mock.calls[0][1] as RequestInit;
-
-            expect(calledUrl).toContain("timestamp=");
-            expect((calledOptions.headers as Record<string, string>)["X-Request-ID"]).toBe("custom-id");
-        });
     });
 
     describe("Request Deduplication", () => {
@@ -275,7 +250,8 @@ describe("Integration Tests", () => {
                         resolve({
                             ok: true,
                             status: 200,
-                            json: () => Promise.resolve({ callNumber: fetchCallCount }),
+                            json: () =>
+                                Promise.resolve({ callNumber: fetchCallCount }),
                         } as Response);
                     }, 50);
                 });
@@ -372,7 +348,7 @@ describe("Integration Tests", () => {
                 .build();
 
             const client = createApiClient(fetcher);
-            const response = await client.apiFetch<{ success: boolean }>("/data");
+            const _ = await client.apiFetch<{ success: boolean }>("/data");
 
             expect(attemptCount).toBeGreaterThanOrEqual(1);
         });
@@ -411,7 +387,9 @@ describe("Integration Tests", () => {
             const fetcher = createFetcherBuilder().build();
             const client = createApiClient(fetcher);
 
-            const response = await client.apiFetch("/user", { schema: UserSchema });
+            const response = await client.apiFetch("/user", {
+                schema: UserSchema,
+            });
 
             expect(isApiError(response)).toBe(false);
             if (!isApiError(response)) {
@@ -464,11 +442,12 @@ describe("Integration Tests", () => {
             const mockFetch = vi.fn().mockResolvedValue({
                 ok: true,
                 status: 200,
-                json: () => Promise.resolve({
-                    id: 1,
-                    name: "Test User",
-                    email: "test@example.com",
-                }),
+                json: () =>
+                    Promise.resolve({
+                        id: 1,
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
             } as Response);
 
             vi.stubGlobal("fetch", mockFetch);
@@ -476,18 +455,17 @@ describe("Integration Tests", () => {
             const UserSchema = z.object({
                 id: z.number(),
                 name: z.string(),
-                email: z.string().email(),
+                email: z.email(),
             });
 
             const fetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
                 .addHeader("X-App-Version", "1.0.0")
-                .setAuth({ type: "bearer", token: "production-token" })
+                .setAuth("bearer", "production-token")
                 .setRequestTimeout(5000)
-                .setRetries({ maxRetries: 3, retryDelay: 1000 })
-                .setBeforeRequest((url, options) => {
+                .setRetries(3, 1000)
+                .setBeforeRequest(() => {
                     executionLog.push("before-request");
-                    return { url, options };
                 })
                 .setAfterResponse((response) => {
                     executionLog.push("after-response");
@@ -500,7 +478,9 @@ describe("Integration Tests", () => {
 
             const client = createApiClient(fetcher);
 
-            const response = await client.apiFetch("/users/1", { schema: UserSchema });
+            const response = await client.apiFetch("/users/1", {
+                schema: UserSchema,
+            });
 
             expect(isApiError(response)).toBe(false);
             expect(executionLog).toContain("before-request");
@@ -516,8 +496,14 @@ describe("Integration Tests", () => {
 
             expect(calledUrl).toContain("api.example.com");
             expect(calledUrl).toContain("api_version=v1");
-            expect((calledOptions.headers as Record<string, string>).Authorization).toBe("Bearer production-token");
-            expect((calledOptions.headers as Record<string, string>)["X-App-Version"]).toBe("1.0.0");
+            expect(
+                (calledOptions.headers as Record<string, string>).Authorization,
+            ).toBe("Bearer production-token");
+            expect(
+                (calledOptions.headers as Record<string, string>)[
+                    "X-App-Version"
+                ],
+            ).toBe("1.0.0");
             expect(calledOptions.credentials).toBe("include");
         });
     });

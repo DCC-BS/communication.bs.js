@@ -1,9 +1,9 @@
 import type { ZodType, z } from "zod";
+import type { ApiError } from "./api_error.js";
 import type {
     ApiFetchOptions,
     ApiFetchOptionsWithSchema,
 } from "./api_fetch_options.js";
-import type { ApiError } from "./api_error.js";
 
 export type ErrorId = "unexpected_error" | "fetch_failed" | string;
 export type ApiResponse<T> = T | ApiError;

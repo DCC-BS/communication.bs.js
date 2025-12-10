@@ -168,7 +168,7 @@ describe("apiFetch with schema", () => {
             "https://api.example.com/users",
             expect.objectContaining({
                 method: "POST",
-                body: requestBody,
+                body: JSON.stringify(requestBody),
             }),
         );
     });
@@ -243,7 +243,7 @@ describe("apiFetch with schema", () => {
         const response = await apiFetch<User>("https://api.example.com/user/1");
 
         expect(response).toHaveProperty("errorId", "request_aborted");
-        expect(response).toHaveProperty("statusCode", 499);
+        expect(response).toHaveProperty("status", 499);
     });
 
     test("PUT request", async () => {
@@ -271,7 +271,7 @@ describe("apiFetch with schema", () => {
             "https://api.example.com/users/1",
             expect.objectContaining({
                 method: "PUT",
-                body: requestBody,
+                body: JSON.stringify(requestBody),
             }),
         );
     });
@@ -285,7 +285,7 @@ describe("apiFetch with schema", () => {
 
         vi.stubGlobal("fetch", mockFetch);
 
-        const response = await apiFetch("https://api.example.com/users/1", {
+        const _ = await apiFetch("https://api.example.com/users/1", {
             method: "DELETE",
         });
 

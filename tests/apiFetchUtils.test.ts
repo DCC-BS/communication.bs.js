@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import {
-    isApiError,
     extractApiError,
     extractApiErrorFormError,
+    isApiError,
 } from "../src/apiFetchUtils";
 import { ApiError } from "../src/types/api_error";
 
