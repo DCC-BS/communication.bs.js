@@ -93,12 +93,12 @@ describe("Integration Tests", () => {
 
             const adminFetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
-                .setAuth({ type: "bearer", token: "admin-token" })
+                .setAuth("bearer", "admin-token")
                 .build();
 
             const userFetcher = createFetcherBuilder()
                 .setBaseURL("https://api.example.com")
-                .setAuth({ type: "bearer", token: "user-token" })
+                .setAuth("bearer", "user-token")
                 .build();
 
             const adminClient = createApiClient(adminFetcher);
@@ -195,9 +195,8 @@ describe("Integration Tests", () => {
             vi.stubGlobal("fetch", mockFetch);
 
             const fetcher = createFetcherBuilder()
-                .setBeforeRequest((url, options) => {
+                .setBeforeRequest(() => {
                     executionOrder.push("beforeRequest");
-                    return { url, options };
                 })
                 .setAfterResponse((response) => {
                     executionOrder.push("afterResponse");
@@ -341,10 +340,7 @@ describe("Integration Tests", () => {
 
             const fetcher = createFetcherBuilder()
                 .setRequestTimeout(100)
-                .setRetries({
-                    maxRetries: 2,
-                    retryDelay: 10,
-                })
+                .setRetries(2, 10)
                 .build();
 
             const client = createApiClient(fetcher);
@@ -359,7 +355,7 @@ describe("Integration Tests", () => {
             const UserSchema = z.object({
                 id: z.number(),
                 name: z.string(),
-                email: z.string().email(),
+                email: z.email(),
                 profile: z.object({
                     age: z.number().min(0),
                     city: z.string(),
@@ -491,8 +487,10 @@ describe("Integration Tests", () => {
                 expect(response.email).toContain("@");
             }
 
-            const calledUrl = mockFetch.mock.calls[0][0] as string;
-            const calledOptions = mockFetch.mock.calls[0][1] as RequestInit;
+            // biome-ignore lint/style/noNonNullAssertion: ok in test
+            const calledUrl = mockFetch.mock.calls![0]![0] as string;
+            // biome-ignore lint/style/noNonNullAssertion: ok in test
+            const calledOptions = mockFetch.mock.calls![0]![1] as RequestInit;
 
             expect(calledUrl).toContain("api.example.com");
             expect(calledUrl).toContain("api_version=v1");

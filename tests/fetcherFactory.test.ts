@@ -375,13 +375,12 @@ describe("fetcherFactory", () => {
 
     describe("hooks", () => {
         test("afterResponse hook processes response", async () => {
-            const mockFetch = vi.fn().mockResolvedValue({
-                ok: true,
-                status: 200,
-                clone: function () {
-                    return this;
-                },
-            } as Response);
+            const mockFetch = vi.fn().mockResolvedValue(
+                Promise.resolve({
+                    ok: true,
+                    status: 200,
+                } as Response),
+            );
 
             vi.stubGlobal("fetch", mockFetch);
 
@@ -434,7 +433,8 @@ describe("fetcherFactory", () => {
 
             await fetcher("/data", {});
 
-            const calledUrl = mockFetch.mock.calls[0][0];
+            // biome-ignore lint/style/noNonNullAssertion: ok in test
+            const calledUrl = mockFetch.mock.calls![0]![0] as string;
             expect(calledUrl).toContain("version=1.0");
             expect(calledUrl).toContain("format=json");
         });
@@ -453,7 +453,8 @@ describe("fetcherFactory", () => {
 
             await fetcher("/data?existing=value", {});
 
-            const calledUrl = mockFetch.mock.calls[0][0];
+            // biome-ignore lint/style/noNonNullAssertion: ok in test
+            const calledUrl = mockFetch.mock.calls![0]![0];
             expect(calledUrl).toContain("existing=value");
             expect(calledUrl).toContain("version=1.0");
         });
