@@ -3,11 +3,22 @@ export {
     apiFetchMany,
     apiFetchTextMany,
     apiStreamFetch,
-    isApiError,
 } from "./apiFetch";
-export { ApiError } from "./models/api_error";
-export type { ApiErrorResponse } from "./models/api_error_response";
+
+export { isApiError } from "./apiFetchUtils";
+
+export { createFetcherBuilder } from "./fetcherFactory";
+export { ApiError } from "./types/api_error";
+export type { ApiErrorResponse } from "./types/api_error_response";
 export type {
     ApiFetchOptions,
     ApiFetchOptionsWithSchema,
-} from "./models/api_fetch_options";
+} from "./types/api_fetch_options";
+export type { AuthConfig } from "./types/auth";
+export type { Fetcher } from "./types/fetcher";
+export type { FetcherBuilderOptions } from "./types/fetcher_builder_options";
+export type {
+    AfterResponseHook,
+    BeforeRequestHook,
+    OnErrorHook,
+} from "./types/hooks";

@@ -101,6 +101,79 @@ describe("apiFetchTextMany", () => {
             }
         }).rejects.toThrow();
     });
+
+    test("handles abort error during text streaming", async () => {
+        const abortError = new Error("The operation was aborted");
+        abortError.name = "AbortError";
+
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abortError));
+
+        const generator = apiFetchTextMany("https://api.example.com/stream");
+
+        await expect(async () => {
+            for await (const _chunk of generator) {
+                // Should throw abort error
+            }
+        }).rejects.toThrow();
+    });
+
+    test("handles large stream with multiple chunks", async () => {
+        const largeChunks = Array.from({ length: 100 }, (_, i) => `chunk-${i}`);
+
+        const mockStream = new ReadableStream({
+            start(controller) {
+                for (const chunk of largeChunks) {
+                    controller.enqueue(new TextEncoder().encode(chunk));
+                }
+                controller.close();
+            },
+        });
+
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                body: mockStream,
+            } as Response),
+        );
+
+        const result: string[] = [];
+        for await (const chunk of apiFetchTextMany(
+            "https://api.example.com/stream",
+        )) {
+            result.push(chunk);
+        }
+
+        expect(result).toEqual(largeChunks);
+        expect(result.length).toBe(100);
+    });
+
+    test("handles empty stream", async () => {
+        const mockStream = new ReadableStream({
+            start(controller) {
+                controller.close();
+            },
+        });
+
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                body: mockStream,
+            } as Response),
+        );
+
+        const result: string[] = [];
+        for await (const chunk of apiFetchTextMany(
+            "https://api.example.com/stream",
+        )) {
+            result.push(chunk);
+        }
+
+        expect(result).toEqual([]);
+    });
 });
 
 describe("apiFetchMany", () => {
@@ -218,5 +291,78 @@ describe("apiFetchMany", () => {
                 // Should throw validation error
             }
         }).rejects.toThrow();
+    });
+
+    test("handles abort error during iteration", async () => {
+        const abortError = new Error("The operation was aborted");
+        abortError.name = "AbortError";
+
+        vi.stubGlobal("fetch", vi.fn().mockRejectedValue(abortError));
+
+        const generator = apiFetchMany("https://api.example.com/stream", {
+            schema: MessageSchema,
+        });
+
+        await expect(async () => {
+            for await (const _chunk of generator) {
+                // Should throw abort error
+            }
+        }).rejects.toThrow();
+    });
+
+    test("handles invalid JSON in stream", async () => {
+        const mockStream = new ReadableStream({
+            start(controller) {
+                controller.enqueue(new TextEncoder().encode("not valid json"));
+                controller.close();
+            },
+        });
+
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                body: mockStream,
+            } as Response),
+        );
+
+        const generator = apiFetchMany("https://api.example.com/stream", {
+            schema: MessageSchema,
+        });
+
+        await expect(async () => {
+            for await (const _chunk of generator) {
+                // Should throw JSON parse error
+            }
+        }).rejects.toThrow();
+    });
+
+    test("handles empty stream", async () => {
+        const mockStream = new ReadableStream({
+            start(controller) {
+                controller.close();
+            },
+        });
+
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue({
+                ok: true,
+                status: 200,
+                body: mockStream,
+            } as Response),
+        );
+
+        const result = [];
+        const generator = apiFetchMany("https://api.example.com/stream", {
+            schema: MessageSchema,
+        });
+
+        for await (const chunk of generator) {
+            result.push(chunk);
+        }
+
+        expect(result).toEqual([]);
     });
 });
