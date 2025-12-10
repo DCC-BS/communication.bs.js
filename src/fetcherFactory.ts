@@ -8,6 +8,7 @@ import type {
     OnErrorHook,
 } from "./types/hooks";
 import { hashFormData, hashString } from "./utils/hash";
+import { normalizeHeaders } from "./utils/headers";
 
 /**
  * Creates a builder for configuring and creating a customized fetcher.
@@ -346,7 +347,7 @@ export function createFetcherBuilder(
                 const headers = {
                     "Content-Type": "application/json",
                     ...options.headers,
-                    ...(fetchOptions.headers || {}),
+                    ...normalizeHeaders(fetchOptions.headers),
                 } as Record<string, string>;
 
                 // Add auth header

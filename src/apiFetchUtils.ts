@@ -24,7 +24,7 @@ export async function extractApiError(response: Response): Promise<ApiError> {
     }
 }
 
-export async function extractApiErrorFormError(error: unknown) {
+export async function extractApiErrorFromError(error: unknown) {
     if (error instanceof ApiError) {
         return error;
     }

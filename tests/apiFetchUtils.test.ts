@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
     extractApiError,
-    extractApiErrorFormError,
+    extractApiErrorFromError,
     isApiError,
 } from "../src/apiFetchUtils";
 import { ApiError } from "../src/types/api_error";
@@ -135,7 +135,7 @@ describe("extractApiErrorFormError", () => {
             400,
             "Original message",
         );
-        const result = await extractApiErrorFormError(originalError);
+        const result = await extractApiErrorFromError(originalError);
 
         expect(result).toBe(originalError);
         expect(result.errorId).toBe("original_error");
@@ -145,7 +145,7 @@ describe("extractApiErrorFormError", () => {
         const abortError = new Error("The operation was aborted");
         abortError.name = "AbortError";
 
-        const result = await extractApiErrorFormError(abortError);
+        const result = await extractApiErrorFromError(abortError);
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("request_aborted");
@@ -155,7 +155,7 @@ describe("extractApiErrorFormError", () => {
     test("converts error with abort cause", async () => {
         const error = { cause: "aborted" };
 
-        const result = await extractApiErrorFormError(error);
+        const result = await extractApiErrorFromError(error);
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("request_aborted");
@@ -163,7 +163,7 @@ describe("extractApiErrorFormError", () => {
     });
 
     test("converts string 'aborted'", async () => {
-        const result = await extractApiErrorFormError("aborted");
+        const result = await extractApiErrorFromError("aborted");
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("request_aborted");
@@ -173,7 +173,7 @@ describe("extractApiErrorFormError", () => {
     test("converts standard Error to fetch_failed", async () => {
         const error = new Error("Network error");
 
-        const result = await extractApiErrorFormError(error);
+        const result = await extractApiErrorFromError(error);
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("fetch_failed");
@@ -182,7 +182,7 @@ describe("extractApiErrorFormError", () => {
     });
 
     test("converts string errors to fetch_failed", async () => {
-        const result = await extractApiErrorFormError("Something went wrong");
+        const result = await extractApiErrorFromError("Something went wrong");
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("fetch_failed");
@@ -191,7 +191,7 @@ describe("extractApiErrorFormError", () => {
     });
 
     test("converts unknown objects to fetch_failed", async () => {
-        const result = await extractApiErrorFormError({ weird: "object" });
+        const result = await extractApiErrorFromError({ weird: "object" });
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("fetch_failed");
@@ -202,7 +202,7 @@ describe("extractApiErrorFormError", () => {
     test("handles TypeError from fetch", async () => {
         const typeError = new TypeError("Failed to fetch");
 
-        const result = await extractApiErrorFormError(typeError);
+        const result = await extractApiErrorFromError(typeError);
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("fetch_failed");
@@ -214,7 +214,7 @@ describe("extractApiErrorFormError", () => {
         const error = new Error("NetworkError");
         error.name = "NetworkError";
 
-        const result = await extractApiErrorFormError(error);
+        const result = await extractApiErrorFromError(error);
 
         expect(isApiError(result)).toBe(true);
         expect(result.errorId).toBe("fetch_failed");

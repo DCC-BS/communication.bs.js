@@ -1,5 +1,5 @@
 import type { ZodType, z } from "zod";
-import { extractApiError, extractApiErrorFormError } from "./apiFetchUtils.js";
+import { extractApiError, extractApiErrorFromError } from "./apiFetchUtils.js";
 import { createFetcherBuilder } from "./fetcherFactory.js";
 import type {
     ApiClient,
@@ -46,7 +46,7 @@ export function createApiClient(fetcher?: Fetcher): ApiClient {
 
             return extractApiError(response);
         } catch (error) {
-            return extractApiErrorFormError(error);
+            return extractApiErrorFromError(error);
         }
     }) as ApiFetchFunction;
 
@@ -63,7 +63,7 @@ export function createApiClient(fetcher?: Fetcher): ApiClient {
 
             return extractApiError(response);
         } catch (error) {
-            return extractApiErrorFormError(error);
+            return extractApiErrorFromError(error);
         }
     }
 
@@ -98,7 +98,7 @@ export function createApiClient(fetcher?: Fetcher): ApiClient {
                 throw extractApiError(response);
             }
         } catch (error) {
-            throw extractApiErrorFormError(error);
+            throw extractApiErrorFromError(error);
         }
     }
 
@@ -122,7 +122,7 @@ export function createApiClient(fetcher?: Fetcher): ApiClient {
                 yield parsed.data;
             }
         } catch (error) {
-            throw extractApiErrorFormError(error);
+            throw extractApiErrorFromError(error);
         }
     }
 
