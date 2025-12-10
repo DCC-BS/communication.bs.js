@@ -636,27 +636,14 @@ describe("fetcherFactory", () => {
         });
 
         test("afterResponse hook can safely consume response body with deduplication", async () => {
-            let callCount = 0;
             const mockFetch = vi.fn().mockImplementation(() => {
-                callCount++;
                 return new Promise((resolve) => {
                     setTimeout(() => {
                         resolve({
                             ok: true,
                             status: 200,
-                            json: vi
-                                .fn()
-                                .mockResolvedValue({
-                                    data: "test",
-                                    count: callCount,
-                                }),
-                            clone: function () {
-                                return {
-                                    ok: this.ok,
-                                    status: this.status,
-                                    json: this.json,
-                                };
-                            },
+                            json: () =>
+                                Promise.resolve({ data: "test", count: 1 }),
                         } as Response);
                     }, 100);
                 });
@@ -676,7 +663,7 @@ describe("fetcherFactory", () => {
                         ...response,
                         json: () => Promise.resolve(data),
                         parsedData: data,
-                    } as Response & { parsedData: any };
+                    } as Response & { parsedData: unknown };
                 });
 
             const fetcher = createFetcherBuilder()
@@ -697,15 +684,21 @@ describe("fetcherFactory", () => {
             expect(afterResponseCallCount).toBe(1);
 
             // All responses should be able to access the parsed data
-            expect((response1 as any).parsedData).toEqual({
+            expect(
+                (response1 as unknown as { parsedData: unknown }).parsedData,
+            ).toEqual({
                 data: "test",
                 count: 1,
             });
-            expect((response2 as any).parsedData).toEqual({
+            expect(
+                (response2 as unknown as { parsedData: unknown }).parsedData,
+            ).toEqual({
                 data: "test",
                 count: 1,
             });
-            expect((response3 as any).parsedData).toEqual({
+            expect(
+                (response3 as unknown as { parsedData: unknown }).parsedData,
+            ).toEqual({
                 data: "test",
                 count: 1,
             });
