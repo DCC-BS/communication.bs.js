@@ -4,10 +4,13 @@ export {
     apiFetchTextMany,
     apiStreamFetch,
 } from "./apiFetch";
-
+export { createApiClient } from "./apiFetchFactory";
 export { isApiError } from "./apiFetchUtils";
-
+export type { UseApiFetchOutput } from "./composables/apiFetch.composable";
+export { useApiFetch } from "./composables/apiFetch.composable";
+export { useApiFetchWithSchema } from "./composables/useApiFetchWithSchema";
 export { createFetcherBuilder } from "./fetcherFactory";
+export type { ApiClient, ApiResponse, ErrorId } from "./types/api_client";
 export { ApiError } from "./types/api_error";
 export type { ApiErrorResponse } from "./types/api_error_response";
 export type {
