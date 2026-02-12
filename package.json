@@ -5,6 +5,9 @@
     "type": "module",
     "version": "0.1.2",
     "types": "dist/communication.bs.d.ts",
+    "repository": {
+        "url": "https://github.com/DCC-BS/communication.bs.js"
+    },
     "declaration": true,
     "exports": {
         ".": {
