@@ -3,7 +3,7 @@
     "module": "./dist/communication.bs.js",
     "main": "./dist/communication.bs.umd.js",
     "type": "module",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "types": "dist/communication.bs.d.ts",
     "repository": {
         "url": "https://github.com/DCC-BS/communication.bs.js"
