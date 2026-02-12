@@ -15,7 +15,7 @@ jobs:
             run_playwright: false
             install_method: "bun" # 'bun' | 'npm' | 'pnpm' | 'yarn'
             install_command: "bun install" # optional override; default per install_method
-            build_command: "bun build"
+            build_command: "bun run build"
             test_command: "bun run test"
             artifact_name: "playwright-report"
             artifact_retention_days: 30
