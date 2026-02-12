@@ -1,5 +1,7 @@
+import { parse } from "zod/mini";
 import { ApiError } from ".";
 import { ApiErrorResponse } from "./types/api_error_response";
+import { ApiJsonError } from "./types/api_error";
 
 export function isApiError(response: unknown): response is ApiError {
     return (
@@ -12,7 +14,14 @@ export function isApiError(response: unknown): response is ApiError {
 
 export async function extractApiError(response: Response): Promise<ApiError> {
     try {
-        const data = ApiErrorResponse.parse(await response.json());
+        const jsonData = await response.json();
+        const parsed = ApiErrorResponse.safeParse(jsonData);
+
+        if (!parsed.success) {
+            return new ApiJsonError(response.status, jsonData);
+        }
+
+        const data = parsed.data;
 
         return new ApiError(
             data.errorId,

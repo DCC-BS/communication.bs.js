@@ -13,3 +13,9 @@ export class ApiError extends Error {
         this.debugMessage = debugMessage;
     }
 }
+
+export class ApiJsonError extends ApiError {
+    constructor(status: number, jsonData: unknown) {
+        super("invalid_json_response", status, JSON.stringify(jsonData));
+    }
+}
