@@ -25,10 +25,14 @@ export async function extractApiError(response: Response): Promise<ApiError> {
         return new ApiError(
             data.errorId,
             response.status,
-            data.debugMessage ?? JSON.stringify(data),
+            data.debugMessage ?? JSON.stringify(jsonData),
         );
-    } catch (_) {
-        return new ApiError("unexpected_error", response.status);
+    } catch (e) {
+        if (e instanceof Error) {
+            return new ApiError("unexpected_error", response.status, e.message);
+        }
+
+        return new ApiError("unexpected_error", response.status, String(e));
     }
 }
 

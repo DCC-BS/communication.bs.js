@@ -1,7 +1,7 @@
 import zod from "zod";
 
 export const ApiErrorResponse = zod.object({
-    errorId: zod.string().optional().default("unexpected_error"),
+    errorId: zod.string(),
     debugMessage: zod.string().optional(),
 });
 
