@@ -12,5 +12,5 @@ jobs:
         uses: DCC-BS/ci-workflows/.github/workflows/npm-publish.yml@v7
         with:
             install_command: bun install
-            build_command: bun run generate
+            build_command: bun run build
             prepack_command: bun run prepack
