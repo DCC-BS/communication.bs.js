@@ -1,7 +1,6 @@
-import { parse } from "zod/mini";
 import { ApiError } from ".";
-import { ApiErrorResponse } from "./types/api_error_response";
 import { ApiJsonError } from "./types/api_error";
+import { ApiErrorResponse } from "./types/api_error_response";
 
 export function isApiError(response: unknown): response is ApiError {
     return (
