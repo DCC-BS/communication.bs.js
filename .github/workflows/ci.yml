@@ -7,7 +7,7 @@ on:
 
 jobs:
     ci:
-        uses: DCC-BS/ci-workflows/.github/workflows/frontend-ci.yml@814649735835a84a3d0d6c8d6e6db87dfeb8b348 # v8
+        uses: DCC-BS/ci-workflows/.github/workflows/frontend-ci.yml@52f8293531f9389c887c7d14c2b57d90d12ef9ae # v9
         with:
             node_version: "24.x"
             working_directory: "."
