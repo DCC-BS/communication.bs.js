@@ -1,21 +1,19 @@
 name: Build & Test
+
 on:
     push:
-        branches: [main]
+        branches:
+            - main
     pull_request:
-        branches: [main]
+        branches:
+            - main
+
+env:
+    APP_MODE: "ci"
+    CI: true
 
 jobs:
     ci:
-        uses: DCC-BS/ci-workflows/.github/workflows/frontend-ci.yml@814649735835a84a3d0d6c8d6e6db87dfeb8b348 # v8
+        uses: DCC-BS/ci-workflows/.github/workflows/ci.yml@d64a5d501aaee55d37be82405e03812862d43474
         with:
-            node_version: "24.x"
-            working_directory: "."
-            run_biome: true
-            run_playwright: false
-            install_method: "bun" # 'bun' | 'npm' | 'pnpm' | 'yarn'
-            install_command: "bun install" # optional override; default per install_method
-            build_command: "bun run build"
-            test_command: "bun run test"
-            artifact_name: "playwright-report"
-            artifact_retention_days: 30
+            check-command: "mise run check"
