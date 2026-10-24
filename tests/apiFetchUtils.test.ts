@@ -4,7 +4,7 @@ import {
     extractApiErrorFromError,
     isApiError,
 } from "../src/apiFetchUtils";
-import { ApiError } from "../src/types/api_error";
+import { ApiError, ApiJsonError } from "../src/types/api_error";
 
 describe("isApiError", () => {
     test("returns true for ApiError instances", () => {
@@ -95,7 +95,7 @@ describe("extractApiError", () => {
         expect(error.status).toBe(500);
     });
 
-    test("returns unexpected_error for non-conforming response structure", async () => {
+    test("returns invalid_json_response for non-conforming response structure", async () => {
         const mockResponse = {
             ok: false,
             status: 500,
@@ -105,8 +105,10 @@ describe("extractApiError", () => {
         const error = await extractApiError(mockResponse);
 
         expect(isApiError(error)).toBe(true);
-        expect(error.errorId).toBe("unexpected_error");
+        expect(error).toBeInstanceOf(ApiJsonError);
+        expect(error.errorId).toBe("invalid_json_response");
         expect(error.status).toBe(500);
+        expect(error.debugMessage).toBe(JSON.stringify({ someField: "value" }));
     });
 
     test("preserves status codes correctly", async () => {
