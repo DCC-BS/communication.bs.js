@@ -24,5 +24,5 @@ export default defineConfig({
         // Ensure browser environment
         "process.env.NODE_ENV": JSON.stringify("production"),
     },
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [dts({ bundleTypes: true })],
 });
