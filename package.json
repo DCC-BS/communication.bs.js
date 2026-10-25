@@ -31,7 +31,7 @@
         "@microsoft/api-extractor": "^7.55.1",
         "@types/bun": "latest",
         "vite-plugin-dts": "^5.0.0",
-        "vitest": "^4.0.13"
+        "vitest": "^5.0.0"
     },
     "peerDependencies": {
         "typescript": "^5"
