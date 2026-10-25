@@ -16,7 +16,11 @@ run = "bun install"
 
 [tasks.build]
 description = "build the library with Vite"
-run = "bunx vite build"
+run = [
+    "bunx vite build",
+    # same declarations for require() consumers (publint: CJS needs its own .d.cts)
+    "cp dist/communication.bs.d.ts dist/communication.bs.d.cts",
+]
 
 # ── Linting ───────────────────────────────────────────────────────────────────
 
@@ -41,3 +45,12 @@ run = "bunx vitest run"
 [tasks."test:watch"]
 description = "run unit tests in watch mode"
 run = "bunx vitest --watch"
+
+[tasks.ci-check]
+description = "lint, then check the built package: publint and a real require()/import() of every entry (run after build)"
+run = [
+    "bunx biome ci .",
+    "bunx publint --strict",
+    "node -e \"const m = require('@dcc-bs/communication.bs.js'); if (typeof m.apiFetch !== 'function') throw new Error('require() entry has no apiFetch')\"",
+    "node --input-type=module -e \"const m = await import('@dcc-bs/communication.bs.js'); if (typeof m.apiFetch !== 'function') throw new Error('import() entry has no apiFetch')\"",
+]
