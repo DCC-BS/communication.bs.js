@@ -66,15 +66,15 @@ pnpm add @dcc-bs/communication.bs.js
 The library provides ready-to-use functions for immediate use:
 
 ```typescript
-import { apiFetch, isApiError } from '@dcc-bs/communication.bs.js';
+import { apiFetch, isApiError } from "@dcc-bs/communication.bs.js";
 
 // Simple API call
-const response = await apiFetch<{ message: string }>('/api/hello');
+const response = await apiFetch<{ message: string }>("/api/hello");
 
 if (isApiError(response)) {
-  console.error('Error:', response.errorId);
+    console.error("Error:", response.errorId);
 } else {
-  console.log(response.message); // Fully typed!
+    console.log(response.message); // Fully typed!
 }
 ```
 
@@ -83,22 +83,25 @@ if (isApiError(response)) {
 For advanced configuration, create custom API clients:
 
 ```typescript
-import { createApiClient, createFetcherBuilder } from '@dcc-bs/communication.bs.js';
+import {
+    createApiClient,
+    createFetcherBuilder,
+} from "@dcc-bs/communication.bs.js";
 
 // Create a custom fetcher with configuration
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .addHeader('X-API-Key', 'your-api-key')
-  .setRequestTimeout(5000)
-  .setRetries(3)
-  .enableDebug()
-  .build();
+    .setBaseURL("https://api.example.com")
+    .addHeader("X-API-Key", "your-api-key")
+    .setRequestTimeout(5000)
+    .setRetries(3)
+    .enableDebug()
+    .build();
 
 // Create an API client with the custom fetcher
 const apiClient = createApiClient(fetcher);
 
 // Use the client
-const user = await apiClient.apiFetch('/users/1');
+const user = await apiClient.apiFetch("/users/1");
 ```
 
 ## Usage
@@ -106,51 +109,55 @@ const user = await apiClient.apiFetch('/users/1');
 ### Basic API Fetch
 
 ```typescript
-import { apiFetch, isApiError } from '@dcc-bs/communication.bs.js';
+import { apiFetch, isApiError } from "@dcc-bs/communication.bs.js";
 
 // Simple API call
-const response = await apiFetch<{ message: string }>('/api/hello');
+const response = await apiFetch<{ message: string }>("/api/hello");
 
 // the resposne is of type { message: string } | ApiError
 // the isApiError function is a type guard so we can narrow the type
 if (isApiError(response)) {
-  console.error('API Error:', response.errorId, response.statusCode);
+    console.error("API Error:", response.errorId, response.statusCode);
 } else {
-  console.log('Success:', response.message);
+    console.log("Success:", response.message);
 }
 ```
 
 ### With Zod Schema Validation
 
 ```typescript
-import { apiFetch } from '@dcc-bs/communication.bs.js';
-import { z } from 'zod';
+import { apiFetch } from "@dcc-bs/communication.bs.js";
+import { z } from "zod";
 
 const UserSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  email: z.email(),
+    id: z.number(),
+    name: z.string(),
+    email: z.email(),
 });
 
-const response = await apiFetch('/api/user/1', {
-  schema: UserSchema,
+const response = await apiFetch("/api/user/1", {
+    schema: UserSchema,
 });
 
 if (!isApiError(response)) {
-  // response is fully typed as z.infer<typeof UserSchema>
-  console.log(response.email);
+    // response is fully typed as z.infer<typeof UserSchema>
+    console.log(response.email);
 }
 ```
 
 ### Vue Composables
+
 The composables provide a reactive way similar to [`useFetch`](https://nuxt.com/docs/4.x/api/composables/use-fetch) to handle API requests in Vue 3 applications.
 
 ```typescript
-import { useApiFetch, useApiFetchWithSchema } from '@dcc-bs/communication.bs.js';
-import { z } from 'zod';
+import {
+    useApiFetch,
+    useApiFetchWithSchema,
+} from "@dcc-bs/communication.bs.js";
+import { z } from "zod";
 
 // Basic composable
-const { data, error, pending } = useApiFetch<User>('/api/user/1');
+const { data, error, pending } = useApiFetch<User>("/api/user/1");
 
 // data is of type Ref<User | undefined>
 // error is of type Ref<ApiErrorResponse | undefined>
@@ -158,26 +165,26 @@ const { data, error, pending } = useApiFetch<User>('/api/user/1');
 
 // With schema validation
 const UserSchema = z.object({
-  id: z.number(),
-  name: z.string(),
+    id: z.number(),
+    name: z.string(),
 });
 
-const { data, error, pending } = useApiFetchWithSchema('/api/user/1', {
-  schema: UserSchema,
+const { data, error, pending } = useApiFetchWithSchema("/api/user/1", {
+    schema: UserSchema,
 });
 ```
 
 ### Streaming API Responses
 
 ```typescript
-import { apiStreamFetch } from '@dcc-bs/communication.bs.js';
+import { apiStreamFetch } from "@dcc-bs/communication.bs.js";
 
-const response = apiStreamFetch('/api/stream', {
-    method: 'POST',
-    body: { prompt: 'Generate text...' },
+const response = apiStreamFetch("/api/stream", {
+    method: "POST",
+    body: { prompt: "Generate text..." },
 });
 
-if(isApiError(response)) {
+if (isApiError(response)) {
     throw new Error(response.debugMessage);
 }
 
@@ -190,7 +197,7 @@ while (true) {
     const chunk = decoder.decode(value, {
         stream: true,
     });
-    console.log('Received chunk:', chunk);
+    console.log("Received chunk:", chunk);
 }
 ```
 
@@ -232,18 +239,21 @@ The `createFetcherBuilder()` function provides a fluent API for configuring cust
 ### Base URL and Headers
 
 ```typescript
-import { createFetcherBuilder, createApiClient } from '@dcc-bs/communication.bs.js';
+import {
+    createFetcherBuilder,
+    createApiClient,
+} from "@dcc-bs/communication.bs.js";
 
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com/v1')
-  .addHeader('X-API-Key', 'your-api-key')
-  .addHeader('X-Custom-Header', 'value')
-  .build();
+    .setBaseURL("https://api.example.com/v1")
+    .addHeader("X-API-Key", "your-api-key")
+    .addHeader("X-Custom-Header", "value")
+    .build();
 
 const client = createApiClient(fetcher);
 
 // Now all requests use the base URL and headers
-const user = await client.apiFetch('/users/1'); // GET https://api.example.com/v1/users/1
+const user = await client.apiFetch("/users/1"); // GET https://api.example.com/v1/users/1
 ```
 
 ### Authentication
@@ -251,66 +261,66 @@ const user = await client.apiFetch('/users/1'); // GET https://api.example.com/v
 ```typescript
 // Bearer Token Authentication
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .setAuth({
-    type: 'bearer',
-    token: 'your-jwt-token'
-  })
-  .build();
+    .setBaseURL("https://api.example.com")
+    .setAuth({
+        type: "bearer",
+        token: "your-jwt-token",
+    })
+    .build();
 
 // Basic Authentication
 const fetcher = createFetcherBuilder()
-  .setAuth({
-    type: 'basic',
-    username: 'user',
-    password: 'pass'
-  })
-  .build();
+    .setAuth({
+        type: "basic",
+        username: "user",
+        password: "pass",
+    })
+    .build();
 ```
 
 ### Retries and Timeouts
 
 ```typescript
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .setRequestTimeout(5000) // 5 second timeout
-  .setRetries(
-    3, // Max 3 retries
-    1000, // Initial delay in ms
-    [500, 502, 503, 504], // Retry on these status codes
-  )
-  .build();
+    .setBaseURL("https://api.example.com")
+    .setRequestTimeout(5000) // 5 second timeout
+    .setRetries(
+        3, // Max 3 retries
+        1000, // Initial delay in ms
+        [500, 502, 503, 504], // Retry on these status codes
+    )
+    .build();
 ```
 
 ### Request/Response Hooks
 
 ```typescript
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .setBeforeRequest((url, options) => {
-      console.log(`Sending request to: ${url}`);
-  })
-  .setAfterResponse((response) => {
-    // Process response after receiving
-    console.log(`Received response with status: ${response.status}`);
-    return response;
-  })
-  .setOnError((error) => {
-    console.error('Request failed:', error);
-  })
-  .build();
+    .setBaseURL("https://api.example.com")
+    .setBeforeRequest((url, options) => {
+        console.log(`Sending request to: ${url}`);
+    })
+    .setAfterResponse((response) => {
+        // Process response after receiving
+        console.log(`Received response with status: ${response.status}`);
+        return response;
+    })
+    .setOnError((error) => {
+        console.error("Request failed:", error);
+    })
+    .build();
 ```
 
 ### Query Parameters and CORS
 
 ```typescript
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .setQueryParams({ version: '1.0', format: 'json' })
-  .setCredentials('include') // 'omit' | 'same-origin' | 'include'
-  .setMode('cors') // 'cors' | 'no-cors' | 'same-origin'
-  .setCache('no-cache') // any valid RequestCache value
-  .build();
+    .setBaseURL("https://api.example.com")
+    .setQueryParams({ version: "1.0", format: "json" })
+    .setCredentials("include") // 'omit' | 'same-origin' | 'include'
+    .setMode("cors") // 'cors' | 'no-cors' | 'same-origin'
+    .setCache("no-cache") // any valid RequestCache value
+    .build();
 ```
 
 ### Request Deduplication
@@ -319,17 +329,17 @@ Prevent duplicate simultaneous requests to the same endpoint:
 
 ```typescript
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .enableDeduplication()
-  .build();
+    .setBaseURL("https://api.example.com")
+    .enableDeduplication()
+    .build();
 
 const client = createApiClient(fetcher);
 
 // These three simultaneous requests will only trigger one actual HTTP request
 const [user1, user2, user3] = await Promise.all([
-  client.apiFetch('/users/1'),
-  client.apiFetch('/users/1'),
-  client.apiFetch('/users/1')
+    client.apiFetch("/users/1"),
+    client.apiFetch("/users/1"),
+    client.apiFetch("/users/1"),
 ]);
 ```
 
@@ -339,33 +349,36 @@ Enable detailed logging for development:
 
 ```typescript
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com')
-  .enableDebug() // Logs all requests and responses
-  .build();
+    .setBaseURL("https://api.example.com")
+    .enableDebug() // Logs all requests and responses
+    .build();
 ```
 
 ### Complete Example
 
 ```typescript
-import { createFetcherBuilder, createApiClient } from '@dcc-bs/communication.bs.js';
+import {
+    createFetcherBuilder,
+    createApiClient,
+} from "@dcc-bs/communication.bs.js";
 
 const fetcher = createFetcherBuilder()
-  .setBaseURL('https://api.example.com/v1')
-  .setAuth({ type: 'bearer', token: process.env.API_TOKEN })
-  .addHeader('X-App-Version', '1.0.0')
-  .setRequestTimeout(10000)
-  .setRetries({ maxRetries: 3, retryDelay: 1000 })
-  .setBeforeRequest((url, options) => {
-    console.log(`→ ${options.method || 'GET'} ${url}`);
-    return { url, options };
-  })
-  .setAfterResponse((response) => {
-    console.log(`← ${response.status} ${response.url}`);
-    return response;
-  })
-  .enableDeduplication()
-  .enableDebug()
-  .build();
+    .setBaseURL("https://api.example.com/v1")
+    .setAuth({ type: "bearer", token: process.env.API_TOKEN })
+    .addHeader("X-App-Version", "1.0.0")
+    .setRequestTimeout(10000)
+    .setRetries({ maxRetries: 3, retryDelay: 1000 })
+    .setBeforeRequest((url, options) => {
+        console.log(`→ ${options.method || "GET"} ${url}`);
+        return { url, options };
+    })
+    .setAfterResponse((response) => {
+        console.log(`← ${response.status} ${response.url}`);
+        return response;
+    })
+    .enableDeduplication()
+    .enableDebug()
+    .build();
 
 const apiClient = createApiClient(fetcher);
 
@@ -380,32 +393,35 @@ Create a Nuxt plugin to provide the API client throughout your application:
 
 **`plugins/api.ts`**:
 ```typescript
-import { createFetcherBuilder, createApiClient } from '@dcc-bs/communication.bs.js';
+import {
+    createFetcherBuilder,
+    createApiClient,
+} from "@dcc-bs/communication.bs.js";
 
 export default defineNuxtPlugin(() => {
-  const config = useRuntimeConfig();
-  
-  // Create a configured fetcher
-  const fetcher = createFetcherBuilder()
-    .setBaseURL(config.public.apiBaseUrl)
-    .setAuth({
-      type: 'bearer',
-      token: config.public.apiToken
-    })
-    .setRequestTimeout(10000)
-    .setRetries(2, 1000)
-    .enableDebug(!!import.meta.dev)
-    .build();
+    const config = useRuntimeConfig();
 
-  // Create the API client
-  const apiClient = createApiClient(fetcher);
+    // Create a configured fetcher
+    const fetcher = createFetcherBuilder()
+        .setBaseURL(config.public.apiBaseUrl)
+        .setAuth({
+            type: "bearer",
+            token: config.public.apiToken,
+        })
+        .setRequestTimeout(10000)
+        .setRetries(2, 1000)
+        .enableDebug(!!import.meta.dev)
+        .build();
 
-  // Provide the client to the app
-  return {
-    provide: {
-      api: apiClient
-    }
-  };
+    // Create the API client
+    const apiClient = createApiClient(fetcher);
+
+    // Provide the client to the app
+    return {
+        provide: {
+            api: apiClient,
+        },
+    };
 });
 ```
 
@@ -530,17 +546,17 @@ All errors follow the `ApiError` structure with:
 Use the `isApiError()` function to check if a response is an error:
 
 ```typescript
-import { apiFetch, isApiError } from '@dcc-bs/communication.bs.js';
+import { apiFetch, isApiError } from "@dcc-bs/communication.bs.js";
 
-const response = await apiFetch('/api/data');
+const response = await apiFetch("/api/data");
 
 if (isApiError(response)) {
-  // response is ApiError
-  console.error(`Error ${response.errorId}: ${response.debugMessage}`);
-  console.error(`Status: ${response.status}`);
+    // response is ApiError
+    console.error(`Error ${response.errorId}: ${response.debugMessage}`);
+    console.error(`Status: ${response.status}`);
 } else {
-  // response is your data type
-  console.log(response);
+    // response is your data type
+    console.log(response);
 }
 ```
 
