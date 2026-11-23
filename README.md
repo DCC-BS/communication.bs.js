@@ -3,6 +3,7 @@
 A TypeScript library for type-safe API communication with built-in error handling, schema validation, and Vue composables. Designed for modern web applications that require robust HTTP request handling with automatic response parsing and validation.
 
 This library expects the API to follow a consistent error response format to leverage its full capabilities. The error responses should include fields such as `errorId`, `status`, and an optional `debugMessage` to ensure seamless integration with the library's error handling mechanisms.
+
 ```json
 { 
     "errorId": "string",          // Unique identifier for the error type
@@ -14,7 +15,6 @@ This library expects the API to follow a consistent error response format to lev
 ![GitHub License](https://img.shields.io/github/license/DCC-BS/communication.bs.js)
 [![Checked with Biome](https://img.shields.io/badge/Checked_with-Biome-60a5fa?style=flat&logo=biome)](https://biomejs.dev)
 [![NPM Version](https://img.shields.io/npm/v/%40dcc-bs%2Fcommunication.bs.js)](https://www.npmjs.com/package/@dcc-bs/communication.bs.js)
-
 
 ## Features
 
@@ -392,6 +392,7 @@ export { apiClient };
 Create a Nuxt plugin to provide the API client throughout your application:
 
 **`plugins/api.ts`**:
+
 ```typescript
 import {
     createFetcherBuilder,
@@ -426,6 +427,7 @@ export default defineNuxtPlugin(() => {
 ```
 
 **Composable to access the API client**:
+
 ```ts
 // composables/useApi.ts
 export function useApi() {
@@ -435,6 +437,7 @@ export function useApi() {
 ```
 
 **Usage in pages/components**:
+
 ```vue
 <script setup lang="ts">
 import { z } from 'zod';
@@ -537,6 +540,7 @@ The library provides standardized error handling with predefined error types:
 - `schema_validation_failed`: Response data doesn't match the provided Zod schema
 
 All errors follow the `ApiError` structure with:
+
 - `errorId`: Unique error identifier
 - `status`: HTTP status code
 - `debugMessage`: Optional debug information
